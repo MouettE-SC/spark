@@ -58,7 +58,12 @@ public class ClassPathResourceHandler extends AbstractResourceHandler {
 
     @Override
     protected AbstractFileResolvingResource getResource(String path) throws MalformedURLException {
-        if (path == null || !path.startsWith("/")) {
+        
+    	// Handle root without '/'
+    	if (path != null && path.length() == 0)
+        	return null;
+    	
+    	if (path == null || !path.startsWith("/")) {
             throw new MalformedURLException(path);
         }
 
