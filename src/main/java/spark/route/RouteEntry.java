@@ -15,7 +15,7 @@ class RouteEntry {
     Object target;
 
     boolean matches(HttpMethod httpMethod, String path) {
-        if ((httpMethod == HttpMethod.before || httpMethod == HttpMethod.after)
+        if ((httpMethod == HttpMethod.before || httpMethod == HttpMethod.after || httpMethod == HttpMethod.afterfinally)
                 && (this.httpMethod == httpMethod)
                 && this.path.equals(SparkUtils.ALL_PATHS)) {
             // Is filter and matches all

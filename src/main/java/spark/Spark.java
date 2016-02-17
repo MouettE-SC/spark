@@ -29,6 +29,10 @@ package spark;
  * return "Hello World!";
  * });
  *
+ * The public methods and fields in this class should be statically imported for the semantic to make sense.
+ * Ie. one should use:
+ * 'post("/books")' without the prefix 'Spark.'
+ *
  * @author Per Wendel
  */
 public final class Spark {
@@ -48,6 +52,10 @@ public final class Spark {
         return SingletonHolder.INSTANCE;
     }
 
+    /**
+     * Statically import this for redirect utility functionality, see {@link spark.Redirect}
+     */
+    public static final Redirect redirect = getInstance().redirect;
 
     /**
      * Map the route for HTTP GET requests
@@ -158,29 +166,7 @@ public final class Spark {
     public static void after(String path, Filter filter) {
         getInstance().after(path, filter);
     }
-    
-    /**
-     * 
-     * Execute after route even if the route throws exception
-     * 
-     * @param path
-     * @param filter
-     */
-    public static synchronized void afterFinally(String path, Filter filter) {
-    	getInstance().afterFinally(path, filter);
-    }
-    
-    /**
-     * 
-     * Execute after any matching route even if the route throws exception
-     * 
-     * @param path
-     * @param filter
-     */
-    public static synchronized void afterFinally(Filter filter) {
-    	getInstance().afterFinally(filter);
-    }
-    
+
     //////////////////////////////////////////////////
     // BEGIN route/filter mapping with accept type
     //////////////////////////////////////////////////
@@ -323,6 +309,28 @@ public final class Spark {
      */
     public static void after(String path, String acceptType, Filter filter) {
         getInstance().after(path, acceptType, filter);
+    }
+
+    /**
+     *
+     * Execute after route even if the route throws exception
+     *
+     * @param path
+     * @param filter
+     */
+    public static void afterFinally(String path, Filter filter) {
+        getInstance().afterFinally(path, filter);
+    }
+
+    /**
+     *
+     * Execute after any matching route even if the route throws exception
+     *
+     * @param path
+     * @param filter
+     */
+    public static void afterFinally(Filter filter) {
+        getInstance().afterFinally(filter);
     }
 
     //////////////////////////////////////////////////
@@ -871,7 +879,7 @@ public final class Spark {
      * @deprecated replaced by {@link #ipAddress(String)}
      */
     public static void setIpAddress(String ipAddress) {
-        getInstance().setIpAddress(ipAddress);
+        getInstance().ipAddress(ipAddress);
     }
 
     /**
@@ -894,7 +902,7 @@ public final class Spark {
      * @deprecated replaced by {@link #port(int)}
      */
     public static void setPort(int port) {
-        getInstance().setPort(port);
+        getInstance().port(port);
     }
 
     /**
@@ -928,7 +936,7 @@ public final class Spark {
                                  String keystorePassword,
                                  String truststoreFile,
                                  String truststorePassword) {
-        getInstance().setSecure(keystoreFile, keystorePassword, truststoreFile, truststorePassword);
+        getInstance().secure(keystoreFile, keystorePassword, truststoreFile, truststorePassword);
     }
 
     /**

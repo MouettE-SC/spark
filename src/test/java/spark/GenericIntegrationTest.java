@@ -1,5 +1,17 @@
 package spark;
 
+import static spark.Spark.after;
+import static spark.Spark.afterFinally;
+import static spark.Spark.before;
+import static spark.Spark.exception;
+import static spark.Spark.externalStaticFileLocation;
+import static spark.Spark.get;
+import static spark.Spark.halt;
+import static spark.Spark.patch;
+import static spark.Spark.post;
+import static spark.Spark.staticFileLocation;
+import static spark.Spark.webSocket;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileWriter;
@@ -21,24 +33,13 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import spark.embeddedserver.jetty.websocket.WebSocketTestClient;
+import spark.embeddedserver.jetty.websocket.WebSocketTestHandler;
 import spark.examples.exception.BaseException;
 import spark.examples.exception.NotFoundException;
 import spark.examples.exception.SubclassOfBaseException;
 import spark.util.SparkTestUtil;
 import spark.util.SparkTestUtil.UrlResponse;
-import spark.websocket.WebSocketTestClient;
-import spark.websocket.WebSocketTestHandler;
-import static spark.Spark.after;
-import static spark.Spark.afterFinally;
-import static spark.Spark.before;
-import static spark.Spark.exception;
-import static spark.Spark.externalStaticFileLocation;
-import static spark.Spark.get;
-import static spark.Spark.halt;
-import static spark.Spark.patch;
-import static spark.Spark.post;
-import static spark.Spark.staticFileLocation;
-import static spark.Spark.webSocket;
 
 public class GenericIntegrationTest {
 
@@ -119,7 +120,8 @@ public class GenericIntegrationTest {
         get("/templateView", (request, response) -> {
             return new ModelAndView("Hello", "my view");
         }, new TemplateEngine() {
-            public String render(ModelAndView modelAndView) {
+            @Override
+			public String render(ModelAndView modelAndView) {
                 return modelAndView.getModel() + " from " + modelAndView.getViewName();
             }
         });
@@ -177,27 +179,27 @@ public class GenericIntegrationTest {
             response.status(404);
             response.body(NOT_FOUND_BRO);
         });
-        
+
         get("/exception", (request, response) -> {
             throw new RuntimeException();
         });
-        
+
         afterFinally("/exception", (request, response) -> {
-        	response.body("finally executed for exception");
+            response.body("finally executed for exception");
         });
-        
+
         post("/nice", (request, response) -> {
-        	return "nice response";
+            return "nice response";
         });
-        
+
         afterFinally("/nice", (request, response) -> {
-        	response.header("post-process", "nice finally response");
+            response.header("post-process", "nice finally response");
         });
-        
+
         afterFinally((request, response) -> {
-        	response.header("post-process-all", "nice finally response after all");
+            response.header("post-process-all", "nice finally response after all");
         });
-        
+
         Spark.awaitInitialization();
     }
 
@@ -443,27 +445,27 @@ public class GenericIntegrationTest {
         Assert.assertEquals("onMessage: Hi Spark!", events.get(1));
         Assert.assertEquals("onClose: 1000 Bye!", events.get(2));
     }
-    
+
     @Test
     public void testRuntimeExceptionForFinally() throws Exception {
-    	UrlResponse response = testUtil.doMethod("GET", "/exception", null);
-    	Assert.assertEquals("finally executed for exception", response.body);
-    	Assert.assertEquals(500, response.status);
+        UrlResponse response = testUtil.doMethod("GET", "/exception", null);
+        Assert.assertEquals("finally executed for exception", response.body);
+        Assert.assertEquals(500, response.status);
     }
-    
+
     @Test
     public void testRuntimeExceptionForAllRoutesFinally() throws Exception {
-    	UrlResponse response = testUtil.doMethod("GET", "/hi", null);
-    	Assert.assertEquals("foobar", response.headers.get("after"));
-    	Assert.assertEquals("nice finally response after all", response.headers.get("post-process-all"));
-    	Assert.assertEquals(200, response.status);
+        UrlResponse response = testUtil.doMethod("GET", "/hi", null);
+        Assert.assertEquals("foobar", response.headers.get("after"));
+        Assert.assertEquals("nice finally response after all", response.headers.get("post-process-all"));
+        Assert.assertEquals(200, response.status);
     }
-    
+
     @Test
     public void testPostProcessBodyForFinally() throws Exception {
-    	UrlResponse response = testUtil.doMethod("POST", "/nice", "");
-    	Assert.assertEquals("nice response", response.body);
-    	Assert.assertEquals("nice finally response", response.headers.get("post-process"));
-    	Assert.assertEquals(200, response.status);
+        UrlResponse response = testUtil.doMethod("POST", "/nice", "");
+        Assert.assertEquals("nice response", response.body);
+        Assert.assertEquals("nice finally response", response.headers.get("post-process"));
+        Assert.assertEquals(200, response.status);
     }
 }

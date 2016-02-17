@@ -24,12 +24,13 @@ import java.util.concurrent.CountDownLatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import spark.embeddedserver.EmbeddedServer;
+import spark.embeddedserver.EmbeddedServers;
 import spark.globalstate.ServletFlag;
 import spark.route.RouteMatcherFactory;
 import spark.route.SimpleRouteMatcher;
 import spark.ssl.SslStores;
 import spark.staticfiles.StaticFiles;
-import spark.webserver.SparkServerFactory;
 
 import static java.util.Objects.requireNonNull;
 
@@ -59,7 +60,7 @@ final class SparkInstance extends Routable {
     protected int threadIdleTimeoutMillis = -1;
     protected Optional<Integer> webSocketIdleTimeoutMillis = Optional.empty();
 
-    protected SparkServer server;
+    protected EmbeddedServer server;
     protected SimpleRouteMatcher routeMatcher;
 
     private boolean servletStaticLocationSet;
@@ -67,19 +68,12 @@ final class SparkInstance extends Routable {
 
     private CountDownLatch latch = new CountDownLatch(1);
 
-    /**
-     * Set the IP address that Spark should listen on. If not called the default
-     * address is '0.0.0.0'. This has to be called before any route mapping is
-     * done.
-     *
-     * @param ipAddress The ipAddress
-     * @deprecated replaced by {@link #ipAddress(String)}
-     */
-    public synchronized void setIpAddress(String ipAddress) {
-        if (initialized) {
-            throwBeforeRouteMappingException();
-        }
-        this.ipAddress = ipAddress;
+    private Object embeddedServerIdentifier = null;
+
+    final Redirect redirect;
+
+    public SparkInstance() {
+        redirect = Redirect.create(this);
     }
 
     /**
@@ -102,51 +96,12 @@ final class SparkInstance extends Routable {
      * If provided port = 0 then the an arbitrary available port will be used.
      *
      * @param port The port number
-     * @deprecated replaced by {@link #port(int)}
-     */
-    public synchronized void setPort(int port) {
-        if (initialized) {
-            throwBeforeRouteMappingException();
-        }
-        this.port = port;
-    }
-
-    /**
-     * Set the port that Spark should listen on. If not called the default port
-     * is 4567. This has to be called before any route mapping is done.
-     * If provided port = 0 then the an arbitrary available port will be used.
-     *
-     * @param port The port number
      */
     public synchronized void port(int port) {
         if (initialized) {
             throwBeforeRouteMappingException();
         }
         this.port = port;
-    }
-
-    /**
-     * Set the connection to be secure, using the specified keystore and
-     * truststore. This has to be called before any route mapping is done. You
-     * have to supply a keystore file, truststore file is optional (keystore
-     * will be reused).
-     * This method is only relevant when using embedded Jetty servers. It should
-     * not be used if you are using Servlets, where you will need to secure the
-     * connection in the servlet container
-     *
-     * @param keystoreFile       The keystore file location as string
-     * @param keystorePassword   the password for the keystore
-     * @param truststoreFile     the truststore file location as string, leave null to reuse
-     *                           keystore
-     * @param truststorePassword the trust store password
-     * @deprecated replaced by {@link #secure(String, String, String, String)}
-     */
-    public synchronized void setSecure(String keystoreFile,
-                                       String keystorePassword,
-                                       String truststoreFile,
-                                       String truststorePassword) {
-
-        secure(keystoreFile, keystorePassword, truststoreFile, truststorePassword);
     }
 
     /**
@@ -255,15 +210,19 @@ final class SparkInstance extends Routable {
     public synchronized void webSocket(String path, Class<?> handler) {
         requireNonNull(path, "WebSocket path cannot be null");
         requireNonNull(handler, "WebSocket handler class cannot be null");
+
         if (initialized) {
             throwBeforeRouteMappingException();
         }
+
         if (ServletFlag.isRunningFromServlet()) {
             throw new IllegalStateException("WebSockets are only supported in the embedded server");
         }
+
         if (webSocketHandlers == null) {
             webSocketHandlers = new HashMap<>();
         }
+
         webSocketHandlers.put(path, handler);
     }
 
@@ -310,7 +269,7 @@ final class SparkInstance extends Routable {
     public synchronized void stop() {
         if (server != null) {
             routeMatcher.clearRoutes();
-            server.stop();
+            server.extinguish();
             latch = new CountDownLatch(1);
         }
         StaticFiles.clear();
@@ -332,9 +291,18 @@ final class SparkInstance extends Routable {
     public synchronized void init() {
         if (!initialized) {
             routeMatcher = RouteMatcherFactory.get();
+
             if (!ServletFlag.isRunningFromServlet()) {
                 new Thread(() -> {
-                    server = SparkServerFactory.create(hasMultipleHandlers());
+                    EmbeddedServers.initialize();
+
+                    if (embeddedServerIdentifier == null) {
+                        embeddedServerIdentifier = EmbeddedServers.defaultIdentifier();
+                    }
+
+                    server = EmbeddedServers.create(embeddedServerIdentifier, hasMultipleHandlers());
+                    server.configureWebSockets(webSocketHandlers, webSocketIdleTimeoutMillis);
+
                     server.ignite(
                             ipAddress,
                             port,
@@ -342,9 +310,7 @@ final class SparkInstance extends Routable {
                             latch,
                             maxThreads,
                             minThreads,
-                            threadIdleTimeoutMillis,
-                            webSocketHandlers,
-                            webSocketIdleTimeoutMillis);
+                            threadIdleTimeoutMillis);
                 }).start();
             }
             initialized = true;
