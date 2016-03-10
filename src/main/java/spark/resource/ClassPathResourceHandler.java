@@ -32,7 +32,6 @@ public class ClassPathResourceHandler extends AbstractResourceHandler {
     private static final Logger LOG = LoggerFactory.getLogger(ClassPathResourceHandler.class);
 
     private final String baseResource;
-    private String welcomeFile;
 
     /**
      * Constructor
@@ -40,20 +39,9 @@ public class ClassPathResourceHandler extends AbstractResourceHandler {
      * @param baseResource the base resource path
      */
     public ClassPathResourceHandler(String baseResource) {
-        this(baseResource, null);
-    }
-
-    /**
-     * Constructor
-     *
-     * @param baseResource the base resource path
-     * @param welcomeFile  the welcomeFile
-     */
-    public ClassPathResourceHandler(String baseResource, String welcomeFile) {
         Assert.notNull(baseResource);
 
         this.baseResource = baseResource;
-        this.welcomeFile = welcomeFile;
     }
 
     @Override
@@ -73,15 +61,6 @@ public class ClassPathResourceHandler extends AbstractResourceHandler {
             final String addedPath = addPaths(baseResource, path);
 
             ClassPathResource resource = new ClassPathResource(addedPath);
-
-            if (resource.exists() && resource.getFile().isDirectory()) {
-                if (welcomeFile != null) {
-                    resource = new ClassPathResource(addPaths(resource.getPath(), welcomeFile));
-                } else {
-                    //  No welcome file configured, serve nothing since it's a directory
-                    resource = null;
-                }
-            }
 
             return (resource != null && resource.exists()) ? resource : null;
         } catch (Exception e) {

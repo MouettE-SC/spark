@@ -1,5 +1,12 @@
 package spark.staticfiles;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+
 import java.io.File;
 import java.util.List;
 
@@ -14,13 +21,6 @@ import org.powermock.reflect.Whitebox;
 import spark.resource.AbstractResourceHandler;
 import spark.resource.ClassPathResource;
 import spark.resource.ExternalResource;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(StaticFiles.class)
@@ -38,43 +38,15 @@ public class StaticFilesTest {
     }
 
     @Test
-    public void testConfigureStaticResources_whenStaticResourcesSetIsFalse_andResourceIsNotDirectory_thenStaticResourcesSetIsFalse() throws
-                                                                                                                                     Exception {
-        //given
-        StaticFiles.clear();
-
-        //when
-        PowerMockito.whenNew(ClassPathResource.class).withArguments("/public/index.html").thenReturn(classPathMock);
-        doReturn(fileMock).when(classPathMock).getFile();
-        doReturn(false).when(fileMock).isDirectory();
-
-        //then
-        StaticFiles.configureStaticResources("/public/index.html");
-        assertFalse("Should return false because the tested method should not modify staticResourcesSet var when the resource ('/public/index.html') is not a directory)",
-                    Whitebox.getInternalState(StaticFiles.class, "staticResourcesSet"));
-        PowerMockito.verifyNew(ClassPathResource.class).withArguments("/public/index.html");
-        verify(classPathMock).getFile();
-        verify(fileMock).isDirectory();
-    }
-
-    @Test
     public void testConfigureStaticResources_whenStaticResourcesSetIsFalse_andResourceIsDirectory_thenStaticResourcesSetIsTrue() throws
                                                                                                                                  Exception {
         //given
         StaticFiles.clear();
 
-        //when
-        PowerMockito.whenNew(ClassPathResource.class).withArguments("/public/folder").thenReturn(classPathMock);
-        doReturn(fileMock).when(classPathMock).getFile();
-        doReturn(true).when(fileMock).isDirectory();
-
         //then
         StaticFiles.configureStaticResources("/public/folder");
         assertTrue("Should return True because the resource ('/public/index.html') is a directory)",
                    Whitebox.getInternalState(StaticFiles.class, "staticResourcesSet"));
-        PowerMockito.verifyNew(ClassPathResource.class).withArguments("/public/folder");
-        verify(classPathMock).getFile();
-        verify(fileMock).isDirectory();
     }
 
 
@@ -84,18 +56,10 @@ public class StaticFilesTest {
         //given
         StaticFiles.clear();
 
-        //when
-        PowerMockito.whenNew(ClassPathResource.class).withArguments("/public/folder").thenReturn(classPathMock);
-        doReturn(fileMock).when(classPathMock).getFile();
-        doReturn(true).when(fileMock).isDirectory();
-
         //then
         StaticFiles.configureStaticResources("/public/folder");
         List<AbstractResourceHandler> staticResourceHandlers = Whitebox.getInternalState(StaticFiles.class, "staticResourceHandlers");
         assertEquals("Should return 1 because the tested method add one ClassPathResource object to the list staticResourceHandlers", staticResourceHandlers.size(), 1);
-        PowerMockito.verifyNew(ClassPathResource.class).withArguments("/public/folder");
-        verify(classPathMock).getFile();
-        verify(fileMock).isDirectory();
     }
 
     @Test

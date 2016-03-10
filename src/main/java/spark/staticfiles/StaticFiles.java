@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 
 import spark.resource.AbstractFileResolvingResource;
 import spark.resource.AbstractResourceHandler;
-import spark.resource.ClassPathResource;
 import spark.resource.ClassPathResourceHandler;
 import spark.resource.ExternalResource;
 import spark.resource.ExternalResourceHandler;
@@ -90,21 +89,11 @@ public class StaticFiles {
         Assert.notNull(folder, "'folder' must not be null");
 
         if (!staticResourcesSet) {
-            try {
-                ClassPathResource resource = new ClassPathResource(folder);
-                if (!resource.getFile().isDirectory()) {
-                    LOG.error("Static resource location must be a folder");
-                    return;
-                }
-
-                if (staticResourceHandlers == null) {
-                    staticResourceHandlers = new ArrayList<>();
-                }
-                staticResourceHandlers.add(new ClassPathResourceHandler(folder, "index.html"));
-                LOG.info("StaticResourceHandler configured with folder = " + folder);
-            } catch (IOException e) {
-                LOG.error("Error when creating StaticResourceHandler", e);
+            if (staticResourceHandlers == null) {
+                staticResourceHandlers = new ArrayList<>();
             }
+            staticResourceHandlers.add(new ClassPathResourceHandler(folder));
+            LOG.info("StaticResourceHandler configured with folder = " + folder);
             staticResourcesSet = true;
         }
 
