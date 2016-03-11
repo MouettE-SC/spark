@@ -4,7 +4,7 @@
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *  
+ *
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -32,9 +32,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import spark.globalstate.ServletFlag;
+import spark.http.matching.MatcherFilter;
 import spark.route.RouteMatcherFactory;
 import spark.staticfiles.StaticFiles;
-import spark.http.matching.MatcherFilter;
 
 /**
  * Filter that can be configured to be used in a web.xml file.
@@ -57,7 +57,7 @@ public class SparkFilter implements Filter {
         ServletFlag.runFromServlet();
 
         application = getApplication(filterConfig);
-        application.init();
+        application.init(filterConfig.getServletContext());
 
         filterPath = FilterTools.getFilterPath(filterConfig);
         matcherFilter = new MatcherFilter(RouteMatcherFactory.get(), true, false);
