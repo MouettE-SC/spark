@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
 
 import spark.globalstate.ServletFlag;
 import spark.http.matching.MatcherFilter;
-import spark.route.RouteMatcherFactory;
+import spark.route.ServletRoutes;
 import spark.staticfiles.StaticFiles;
 
 /**
@@ -49,6 +49,7 @@ public class SparkFilter implements Filter {
     public static final String APPLICATION_CLASS_PARAM = "applicationClass";
 
     private String filterPath;
+
     private MatcherFilter matcherFilter;
     private SparkApplication application;
 
@@ -60,7 +61,8 @@ public class SparkFilter implements Filter {
         application.init(filterConfig.getServletContext());
 
         filterPath = FilterTools.getFilterPath(filterConfig);
-        matcherFilter = new MatcherFilter(RouteMatcherFactory.get(), true, false);
+
+        matcherFilter = new MatcherFilter(ServletRoutes.get(), StaticFiles.servletInstance, true, false);
     }
 
     /**
@@ -108,7 +110,8 @@ public class SparkFilter implements Filter {
         };
 
         // handle static resources
-        boolean consumed = StaticFiles.consume(httpRequest, httpResponse);
+        boolean consumed = StaticFiles.servletInstance.consume(httpRequest, httpResponse);
+
         if (consumed) {
             return;
         }

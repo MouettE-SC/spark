@@ -41,18 +41,22 @@ import spark.utils.IOUtils;
  * TODO: Cache-Control and ETAG
  */
 public class StaticFiles {
-    private static final Logger LOG = LoggerFactory.getLogger(StaticFiles.class);
+    private final Logger LOG = LoggerFactory.getLogger(StaticFiles.class);
 
-    private static List<AbstractResourceHandler> staticResourceHandlers = null;
+    private List<AbstractResourceHandler> staticResourceHandlers = null;
 
-    private static boolean staticResourcesSet = false;
-    private static boolean externalStaticResourcesSet = false;
+    private boolean staticResourcesSet = false;
+    private boolean externalStaticResourcesSet = false;
+
+    public static StaticFiles servletInstance = new StaticFiles();
+
 
     /**
      * @return true if consumed, false otherwise.
      */
-    public static boolean consume(HttpServletRequest httpRequest,
-                                  HttpServletResponse httpResponse) throws IOException {
+    public boolean consume(HttpServletRequest httpRequest,
+                           HttpServletResponse httpResponse) throws IOException {
+
         if (staticResourceHandlers != null) {
             for (AbstractResourceHandler staticResourceHandler : staticResourceHandlers) {
                 AbstractFileResolvingResource resource = staticResourceHandler.getResource(httpRequest);
@@ -65,13 +69,14 @@ public class StaticFiles {
                 }
             }
         }
+
         return false;
     }
 
     /**
      * Clears all static file configuration
      */
-    public static void clear() {
+    public void clear() {
         if (staticResourceHandlers != null) {
             staticResourceHandlers.clear();
             staticResourceHandlers = null;
@@ -85,7 +90,7 @@ public class StaticFiles {
      *
      * @param folder the location
      */
-    public synchronized static void configureStaticResources(String folder) {
+    public synchronized void configure(String folder) {
         Assert.notNull(folder, "'folder' must not be null");
 
         if (!staticResourcesSet) {
@@ -104,7 +109,7 @@ public class StaticFiles {
      *
      * @param folder the location
      */
-    public synchronized static void configureExternalStaticResources(String folder) {
+    public synchronized void configureExternal(String folder) {
         Assert.notNull(folder, "'folder' must not be null");
 
         if (!externalStaticResourcesSet) {
@@ -128,4 +133,7 @@ public class StaticFiles {
 
     }
 
+    public static StaticFiles create() {
+        return new StaticFiles();
+    }
 }
