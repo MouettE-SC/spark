@@ -1,10 +1,10 @@
 /*
- * Copyright 2011- Per Wendel
+ * Copyright 2016 - Per Wendel
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *  
+ *
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -14,25 +14,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package spark.servlet;
+package spark;
 
-import javax.servlet.ServletContext;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * The application entry point when Spark is run in a servlet context.
+ * Types and methods annotated with this annotation are experimental and may be changed or removed from the API at any
+ * time. (This does not mean it won't be part of the official API at any point either).
  *
  * @author Per Wendel
  */
-public interface SparkApplication {
-
-    /**
-     * Invoked from the SparkFilter. Add routes here.
-     * @param servletContext
-     */
-    void init(ServletContext servletContext);
-
-    /**
-     * Invoked from the SparkFilter.
-     */
-    default void destroy() {}
+@Target({ElementType.TYPE, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Experimental {
+    String value() default "";
 }

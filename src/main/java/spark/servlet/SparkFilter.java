@@ -4,7 +4,7 @@
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *
+ *  
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
 import spark.globalstate.ServletFlag;
 import spark.http.matching.MatcherFilter;
 import spark.route.ServletRoutes;
-import spark.staticfiles.StaticFiles;
+import spark.staticfiles.StaticFilesConfiguration;
 
 /**
  * Filter that can be configured to be used in a web.xml file.
@@ -62,7 +62,7 @@ public class SparkFilter implements Filter {
 
         filterPath = FilterTools.getFilterPath(filterConfig);
 
-        matcherFilter = new MatcherFilter(ServletRoutes.get(), StaticFiles.servletInstance, true, false);
+        matcherFilter = new MatcherFilter(ServletRoutes.get(), StaticFilesConfiguration.servletInstance, true, false);
     }
 
     /**
@@ -110,7 +110,7 @@ public class SparkFilter implements Filter {
         };
 
         // handle static resources
-        boolean consumed = StaticFiles.servletInstance.consume(httpRequest, httpResponse);
+        boolean consumed = StaticFilesConfiguration.servletInstance.consume(httpRequest, httpResponse);
 
         if (consumed) {
             return;

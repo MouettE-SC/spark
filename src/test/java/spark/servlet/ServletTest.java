@@ -144,6 +144,13 @@ public class ServletTest {
     }
 
     @Test
+    public void testStaticWelcomeResource() throws Exception {
+        UrlResponse response = testUtil.doMethod("GET", SOMEPATH + "/pages/", null);
+        Assert.assertEquals(200, response.status);
+        Assert.assertTrue(response.body.contains("<html><body>Hello Static World!</body></html>"));
+    }
+
+    @Test
     public void testExternalStaticFile() throws Exception {
         UrlResponse response = testUtil.doMethod("GET", SOMEPATH + "/" + MyApp.EXTERNAL_FILE, null);
         Assert.assertEquals(200, response.status);

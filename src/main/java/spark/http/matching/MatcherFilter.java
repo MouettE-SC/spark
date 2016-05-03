@@ -33,7 +33,7 @@ import spark.Response;
 import spark.embeddedserver.jetty.HttpRequestWrapper;
 import spark.route.HttpMethod;
 import spark.serialization.SerializerChain;
-import spark.staticfiles.StaticFiles;
+import spark.staticfiles.StaticFilesConfiguration;
 
 /**
  * Matches Spark routes and filters.
@@ -47,7 +47,7 @@ public class MatcherFilter implements Filter {
     private static final String ACCEPT_TYPE_REQUEST_MIME_HEADER = "Accept";
     private static final String HTTP_METHOD_OVERRIDE_HEADER = "X-HTTP-Method-Override";
 
-    private final StaticFiles staticFiles;
+    private final StaticFilesConfiguration staticFiles;
 
     private spark.route.Routes routeMatcher;
     private SerializerChain serializerChain;
@@ -64,7 +64,7 @@ public class MatcherFilter implements Filter {
      * @param hasOtherHandlers  If true, do nothing if request is not consumed by Spark in order to let others handlers process the request.
      */
     public MatcherFilter(spark.route.Routes routeMatcher,
-                         StaticFiles staticFiles,
+                         StaticFilesConfiguration staticFiles,
                          boolean externalContainer,
                          boolean hasOtherHandlers) {
 
@@ -76,7 +76,7 @@ public class MatcherFilter implements Filter {
     }
 
     @Override
-	public void init(FilterConfig config) {
+    public void init(FilterConfig config) {
         //
     }
 
@@ -124,7 +124,7 @@ public class MatcherFilter implements Filter {
         try {
 
             BeforeFilters.execute(context);
-            spark.http.matching.Routes.execute(context);
+            Routes.execute(context);
             AfterFilters.execute(context);
 
         } catch (HaltException halt) {
@@ -178,7 +178,9 @@ public class MatcherFilter implements Filter {
         return method;
     }
 
-	public void destroy() {
+    @Override
+    public void destroy() {
+        //
     }
 
     private static final String NOT_FOUND = "<html><body><h2>404 Not found</h2></body></html>";

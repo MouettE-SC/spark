@@ -1,5 +1,5 @@
 /*
- * Copyright 2011- Per Wendel
+ * Copyright 2016 - Per Wendel
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,23 +14,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package spark.examples.staticresources;
-
-import static spark.Spark.get;
-import static spark.Spark.staticFileLocation;
+package spark.examples.sugar;
 
 /**
- * Example showing how serve static resources.
+ * Shows how Spark can be extended for creating some syntactic sugar.
  */
-public class StaticResources {
+public class SugarExample {
 
     public static void main(String[] args) {
 
-        // Will serve all static file are under "/public" in classpath if the route isn't consumed by others routes.
-        staticFileLocation("/public");
-
-        get("/hello", (request, response) -> {
-            return "Hello World!";
-        });
+        http.get("/hi", () -> "Hi!");
+        http.get("/hello", (q, a) -> "Hello!");
     }
+
 }
