@@ -11,6 +11,8 @@ import static spark.Spark.halt;
 import static spark.Spark.post;
 import static spark.Spark.staticFileLocation;
 
+import javax.servlet.ServletContext;
+
 public class MyApp implements SparkApplication {
 
     public static final String EXTERNAL_FILE = "externalFileServlet.html";
@@ -18,7 +20,7 @@ public class MyApp implements SparkApplication {
     static File tmpExternalFile;
 
     @Override
-    public synchronized void init() {
+    public synchronized void init(ServletContext context) {
         try {
             externalStaticFileLocation(System.getProperty("java.io.tmpdir"));
             staticFileLocation("/public");
