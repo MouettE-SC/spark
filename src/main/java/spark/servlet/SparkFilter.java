@@ -58,7 +58,7 @@ public class SparkFilter implements Filter {
         ServletFlag.runFromServlet();
 
         application = getApplication(filterConfig);
-        application.init();
+        application.init(filterConfig.getServletContext());
 
         filterPath = FilterTools.getFilterPath(filterConfig);
 
