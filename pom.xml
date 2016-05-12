@@ -27,6 +27,19 @@
     </scm>
     <developers>
     </developers>
+    
+    <distributionManagement>
+      <repository>
+        <id>EBReleases</id>
+        <name>Edibox releases repository</name>
+        <url>http://nexus.edibox.ca/repository/releases</url>
+      </repository>
+      <snapshotRepository>
+        <id>EBSnapshots</id>
+        <name>Edibox snaphosts repository</name>
+        <url>http://nexus.edibox.ca/repository/snapshots</url>
+      </snapshotRepository>
+    </distributionManagement>
 
     <properties>
         <java.version>1.8</java.version>
