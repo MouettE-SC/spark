@@ -4,7 +4,7 @@
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *  
+ *
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -17,6 +17,8 @@
 package spark;
 
 import static spark.Service.ignite;
+
+import java.io.File;
 
 /**
  * The main building block of a Spark application is a set of routes. A route is
@@ -998,6 +1000,16 @@ public class Spark {
      */
     public static void threadPool(int maxThreads, int minThreads, int idleTimeoutMillis) {
         getInstance().threadPool(maxThreads, minThreads, idleTimeoutMillis);
+    }
+
+    /**
+     * Configures jetty's session directory to keep sessions informations
+     * between startups
+     *
+     * @param sessionsDirectory session directory to store session files
+     */
+    public static void sessionsDir(File sessionsDirectory) {
+        getInstance().sessionsDir(sessionsDirectory);
     }
 
     /**
