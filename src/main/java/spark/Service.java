@@ -72,6 +72,9 @@ public final class Service extends Routable {
     protected EmbeddedServer server;
     protected Routes routes;
 
+    protected String requestLogFileName = null;
+    protected int requestLogRetainDays = 0;
+
     private boolean servletStaticLocationSet;
     private boolean servletExternalStaticLocationSet;
 
@@ -296,6 +299,22 @@ public final class Service extends Routable {
     }
 
     /**
+     * Configures the request logging
+     *
+     * @param fileName   - Set the output file name of the request log. The file name may be in
+     *                     include the pattern 'yyyy_mm_dd' to enable rollover.
+     * @param retainDays - The number of days to retain files before deleting them. 0 to retain forever.
+     */
+    public synchronized void setRequestLog(String fileName, int retainDays) {
+        if (initialized && !isRunningFromServlet()) {
+            throwBeforeRouteMappingException();
+        }
+
+        this.requestLogFileName = fileName;
+        this.requestLogRetainDays = retainDays;
+    }
+
+    /**
      * Waits for the spark server to be initialized.
      * If it's already initialized will return immediately
      */
@@ -372,7 +391,9 @@ public final class Service extends Routable {
                             latch,
                             maxThreads,
                             minThreads,
-                            threadIdleTimeoutMillis);
+                            threadIdleTimeoutMillis,
+                            requestLogFileName,
+                            requestLogRetainDays);
                 }).start();
             }
             initialized = true;

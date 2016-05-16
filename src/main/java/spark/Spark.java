@@ -1097,6 +1097,17 @@ public class Spark {
     }
 
     /**
+     * Configures the request logging
+     *
+     * @param fileName   - Set the output file name of the request log. The file name may be in
+     *                     include the pattern 'yyyy_mm_dd' to enable rollover.
+     * @param retainDays - The number of days to retain files before deleting them. 0 to retain forever.
+     */
+    public static void setRequestLog(String fileName, int retainDays) {
+        getInstance().setRequestLog(fileName, retainDays);
+    }
+
+    /**
      * Initializes the Spark server. SHOULD just be used when using the Websockets functionality.
      */
     public static void init() {
