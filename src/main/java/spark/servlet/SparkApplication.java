@@ -16,6 +16,8 @@
  */
 package spark.servlet;
 
+import javax.servlet.ServletContext;
+
 /**
  * The application entry point when Spark is run in a servlet context.
  *
@@ -25,8 +27,9 @@ public interface SparkApplication {
 
     /**
      * Invoked from the SparkFilter. Add routes here.
+     * @param servletContext
      */
-    void init();
+    void init(ServletContext servletContext);
 
     /**
      * Invoked from the SparkFilter.
