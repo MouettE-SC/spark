@@ -4,7 +4,7 @@
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *  
+ *
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -26,6 +26,7 @@ import java.util.concurrent.CountDownLatch;
 
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.NCSARequestLog;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.HandlerList;
@@ -77,7 +78,9 @@ public class EmbeddedJettyServer implements EmbeddedServer {
                        CountDownLatch latch,
                        int maxThreads,
                        int minThreads,
-                       int threadIdleTimeoutMillis) {
+                       int threadIdleTimeoutMillis,
+                       String requestLogFileName,
+                       int requestLogRetainDays) {
 
         if (port == 0) {
             try (ServerSocket s = new ServerSocket(0)) {
@@ -119,6 +122,13 @@ public class EmbeddedJettyServer implements EmbeddedServer {
             HandlerList handlers = new HandlerList();
             handlers.setHandlers(handlersInList.toArray(new Handler[handlersInList.size()]));
             server.setHandler(handlers);
+        }
+
+        if (requestLogFileName != null) {
+            NCSARequestLog rl = new NCSARequestLog(requestLogFileName);
+            rl.setRetainDays(requestLogRetainDays);
+            rl.setAppend(true);
+            server.setRequestLog(rl);
         }
 
         try {

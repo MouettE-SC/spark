@@ -38,14 +38,19 @@ public interface EmbeddedServer {
      * @param maxThreads              - max nbr of threads.
      * @param minThreads              - min nbr of threads.
      * @param threadIdleTimeoutMillis - idle timeout (ms).
-     */
+     * @param requestLogFileName      - Set the output file name of the request log. The file name may be in
+     *                                  include the pattern 'yyyy_mm_dd' to enable rollover.
+     * @param requestLogRetainDays    - The number of days to retain files before deleting them. 0 to retain forever.
+     * */
     void ignite(String host,
                 int port,
                 SslStores sslStores,
                 CountDownLatch latch,
                 int maxThreads,
                 int minThreads,
-                int threadIdleTimeoutMillis);
+                int threadIdleTimeoutMillis,
+                String requestLogFileName,
+                int requestLogRetainDays);
 
     /**
      * Configures the web sockets for the embedded server.

@@ -4,7 +4,7 @@
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *  
+ *
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -1061,6 +1061,17 @@ public class Spark {
      */
     public static void webSocketIdleTimeoutMillis(int timeoutMillis) {
         getInstance().webSocketIdleTimeoutMillis(timeoutMillis);
+    }
+
+    /**
+     * Configures the request logging
+     *
+     * @param fileName   - Set the output file name of the request log. The file name may be in
+     *                     include the pattern 'yyyy_mm_dd' to enable rollover.
+     * @param retainDays - The number of days to retain files before deleting them. 0 to retain forever.
+     */
+    public static void setRequestLog(String fileName, int retainDays) {
+        getInstance().setRequestLog(fileName, retainDays);
     }
 
     /**
