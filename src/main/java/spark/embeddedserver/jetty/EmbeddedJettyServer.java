@@ -4,7 +4,7 @@
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *  
+ *
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -16,6 +16,7 @@
  */
 package spark.embeddedserver.jetty;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.ArrayList;
@@ -29,6 +30,7 @@ import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.HandlerList;
+import org.eclipse.jetty.server.session.HashSessionManager;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +49,7 @@ public class EmbeddedJettyServer implements EmbeddedServer {
     private static final int SPARK_DEFAULT_PORT = 4567;
     private static final String NAME = "Spark";
 
-    private Handler handler;
+    private JettyHandler handler;
     private Server server;
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -55,7 +57,7 @@ public class EmbeddedJettyServer implements EmbeddedServer {
     private Map<String, Class<?>> webSocketHandlers;
     private Optional<Integer> webSocketIdleTimeoutMillis;
 
-    public EmbeddedJettyServer(Handler handler) {
+    public EmbeddedJettyServer(JettyHandler handler) {
         this.handler = handler;
     }
 
@@ -65,6 +67,19 @@ public class EmbeddedJettyServer implements EmbeddedServer {
 
         this.webSocketHandlers = webSocketHandlers;
         this.webSocketIdleTimeoutMillis = webSocketIdleTimeoutMillis;
+    }
+
+    @Override
+    public void configureSessionsDirectory(File sessionsDir) {
+        if (sessionsDir != null) {
+            try {
+                HashSessionManager sm = new HashSessionManager();
+                sm.setStoreDirectory(sessionsDir);
+                handler.setSessionManager(sm);
+            } catch (IOException e) {
+                logger.warn("Unable to set persistent session store", e);
+            }
+        }
     }
 
     /**

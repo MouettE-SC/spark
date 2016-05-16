@@ -16,6 +16,7 @@
  */
 package spark;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -58,6 +59,8 @@ public final class Service extends Routable {
 
     protected String staticFileFolder = null;
     protected String externalStaticFileFolder = null;
+
+    protected File sessionsDir = null;
 
     protected Map<String, Class<?>> webSocketHandlers = null;
 
@@ -236,6 +239,20 @@ public final class Service extends Routable {
     }
 
     /**
+     * Sets the external directory to store jetty's session files so that
+     * sessions information are kept between runs.
+     *
+     * @param sessionsDir session directory to use
+     */
+    public synchronized void sessionsDir(File sessionsDir) {
+        if (initialized && !isRunningFromServlet()) {
+            throwBeforeRouteMappingException();
+        }
+
+        this.sessionsDir = sessionsDir;
+    }
+
+    /**
      * Maps the given path to the given WebSocket handler.
      * <p>
      * This is currently only available in the embedded server mode.
@@ -343,6 +360,8 @@ public final class Service extends Routable {
                                                     routes,
                                                     staticFilesConfiguration,
                                                     hasMultipleHandlers());
+
+                    server.configureSessionsDirectory(sessionsDir);
 
                     server.configureWebSockets(webSocketHandlers, webSocketIdleTimeoutMillis);
 

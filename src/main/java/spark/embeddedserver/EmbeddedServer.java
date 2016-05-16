@@ -16,6 +16,7 @@
  */
 package spark.embeddedserver;
 
+import java.io.File;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
@@ -58,6 +59,13 @@ public interface EmbeddedServer {
 
         NotSupportedException.raise(getClass().getSimpleName(), "Web Sockets");
     }
+
+    /**
+     * Configure the session storage directory for the embedded server.
+     *
+     * @param sessionsDir - session directory
+     */
+    void configureSessionsDirectory(File sessionsDir);
 
     /**
      * Extinguish the embedded server.
