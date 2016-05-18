@@ -1,0 +1,8 @@
+Modifications to upstream:
+
+- request logging (jetty only)
+- session directory (jetty only)
+- added finally filters (see issues 195/324 and PR 217/406/546)
+- logging of uncaught exception in user code (see issue 486/PR 487)
+- ServletContext parameter to application init in servlet mode
+- read static files from multiple and mixed classpath locations (PR 548)  
