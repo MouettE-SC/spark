@@ -361,8 +361,8 @@ public class Spark {
      * @param path   the path
      * @param filter the filter
      */
-    public static void afterFinally(String path, Filter filter) {
-        getInstance().afterFinally(path, filter);
+    public static void done(String path, Filter filter) {
+        getInstance().done(path, filter);
     }
 
     /**
@@ -371,8 +371,8 @@ public class Spark {
      *
      * @param filter the filter
      */
-    public static void afterFinally(Filter filter) {
-        getInstance().afterFinally(filter);
+    public static void done(Filter filter) {
+        getInstance().done(filter);
     }
 
     //////////////////////////////////////////////////
