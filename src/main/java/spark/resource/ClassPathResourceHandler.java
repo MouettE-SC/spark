@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 
 import spark.staticfiles.DirectoryTraversal;
 import spark.utils.Assert;
-import spark.utils.ResourceUtils;
 
 /**
  * Locates resources in classpath
@@ -71,15 +70,13 @@ public class ClassPathResourceHandler extends AbstractResourceHandler {
 
             ClassPathResource resource = new ClassPathResource(addedPath);
 
-            if ( resource.exists() ) {
-            	if ((ResourceUtils.isFileURL(resource.getURL()) && resource.getFile().isDirectory()) || path.endsWith("/") ) {
-            		if (welcomeFile != null) {
-            			resource = new ClassPathResource(addPaths(resource.getPath(), welcomeFile));
-            		} else {
-            			//  No welcome file configured, serve nothing since it's a directory
-            			resource = null;
-            		}
-            	}
+            if (resource.exists() && path.endsWith("/")) {
+                if (welcomeFile != null) {
+                    resource = new ClassPathResource(addPaths(resource.getPath(), welcomeFile));
+                } else {
+                    // No welcome file configured, serve nothing since it's a directory
+                    resource = null;
+                }
             }
 
             if (resource != null && resource.exists()) {
