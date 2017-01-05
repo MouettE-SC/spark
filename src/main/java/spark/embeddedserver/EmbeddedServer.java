@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 
+import spark.embeddedserver.jetty.websocket.WebSocketHandlerWrapper;
 import spark.ssl.SslStores;
 
 /**
@@ -42,16 +43,17 @@ public interface EmbeddedServer {
      * @param requestLogFileName      - Set the output file name of the request log. The file name may be in
      *                                  include the pattern 'yyyy_mm_dd' to enable rollover.
      * @param requestLogRetainDays    - The number of days to retain files before deleting them. 0 to retain forever.
-     * */
-    void ignite(String host,
-                int port,
-                SslStores sslStores,
-                CountDownLatch latch,
-                int maxThreads,
-                int minThreads,
-                int threadIdleTimeoutMillis,
-                String requestLogFileName,
-                int requestLogRetainDays);
+     * @return The port number the server was launched on.
+     */
+    int ignite(String host,
+               int port,
+               SslStores sslStores,
+               CountDownLatch latch,
+               int maxThreads,
+               int minThreads,
+               int threadIdleTimeoutMillis,
+               String requestLogFileName,
+               int requestLogRetainDays);
 
     /**
      * Configures the web sockets for the embedded server.
@@ -59,7 +61,7 @@ public interface EmbeddedServer {
      * @param webSocketHandlers          - web socket handlers.
      * @param webSocketIdleTimeoutMillis - Optional WebSocket idle timeout (ms).
      */
-    default void configureWebSockets(Map<String, Class<?>> webSocketHandlers,
+    default void configureWebSockets(Map<String, WebSocketHandlerWrapper> webSocketHandlers,
                                      Optional<Integer> webSocketIdleTimeoutMillis) {
 
         NotSupportedException.raise(getClass().getSimpleName(), "Web Sockets");
