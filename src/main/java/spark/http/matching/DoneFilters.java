@@ -25,15 +25,15 @@ import spark.route.HttpMethod;
 import spark.routematch.RouteMatch;
 
 /**
- * Executes the finally after filters matching an HTTP request.
+ * Executes the done filters matching an HTTP request.
  */
-final class FinallyAfterFilters {
+final class DoneFilters {
 
     static void execute(RouteContext context) throws Exception {
 
         Object content = context.body().get();
 
-        List<RouteMatch> matchSet = context.routeMatcher().findMultiple(HttpMethod.afterfinally,
+        List<RouteMatch> matchSet = context.routeMatcher().findMultiple(HttpMethod.done,
                                                                                context.uri(),
                                                                                context.acceptType());
 

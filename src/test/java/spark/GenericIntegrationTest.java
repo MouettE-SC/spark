@@ -31,8 +31,8 @@ import spark.util.SparkTestUtil;
 import spark.util.SparkTestUtil.UrlResponse;
 
 import static spark.Spark.after;
-import static spark.Spark.afterFinally;
 import static spark.Spark.before;
+import static spark.Spark.done;
 import static spark.Spark.exception;
 import static spark.Spark.externalStaticFileLocation;
 import static spark.Spark.get;
@@ -133,6 +133,7 @@ public class GenericIntegrationTest {
         get("/templateView", (q, a) -> {
             return new ModelAndView("Hello", "my view");
         }, new TemplateEngine() {
+            @Override
             public String render(ModelAndView modelAndView) {
                 return modelAndView.getModel() + " from " + modelAndView.getViewName();
             }
@@ -211,20 +212,20 @@ public class GenericIntegrationTest {
             throw new RuntimeException();
         });
 
-        afterFinally("/exception", (request, response) -> {
-            response.body("finally executed for exception");
+        done("/exception", (request, response) -> {
+            response.body("done executed for exception");
         });
 
         post("/nice", (request, response) -> {
             return "nice response";
         });
 
-        afterFinally("/nice", (request, response) -> {
-            response.header("post-process", "nice finally response");
+        done("/nice", (request, response) -> {
+            response.header("post-process", "nice done response");
         });
 
-        afterFinally((request, response) -> {
-            response.header("post-process-all", "nice finally response after all");
+        done((request, response) -> {
+            response.header("post-process-all", "nice done response after all");
         });
 
         Spark.awaitInitialization();
@@ -501,6 +502,7 @@ public class GenericIntegrationTest {
         Assert.assertEquals("onClose: 1000 Bye!", events.get(2));
     }
 
+    @Test
     public void path_should_prefix_routes() throws Exception {
         UrlResponse response = testUtil.doMethod("GET", "/firstPath/test", null, "application/json");
         Assert.assertTrue(response.status == 200);
@@ -525,9 +527,9 @@ public class GenericIntegrationTest {
     }
 
     @Test
-    public void testRuntimeExceptionForFinally() throws Exception {
+    public void testRuntimeExceptionForDone() throws Exception {
         UrlResponse response = testUtil.doMethod("GET", "/exception", null);
-        Assert.assertEquals("finally executed for exception", response.body);
+        Assert.assertEquals("done executed for exception", response.body);
         Assert.assertEquals(500, response.status);
     }
 
@@ -535,7 +537,7 @@ public class GenericIntegrationTest {
     public void testRuntimeExceptionForAllRoutesFinally() throws Exception {
         UrlResponse response = testUtil.doMethod("GET", "/hi", null);
         Assert.assertEquals("foobar", response.headers.get("after"));
-        Assert.assertEquals("nice finally response after all", response.headers.get("post-process-all"));
+        Assert.assertEquals("nice done response after all", response.headers.get("post-process-all"));
         Assert.assertEquals(200, response.status);
     }
 
@@ -543,7 +545,7 @@ public class GenericIntegrationTest {
     public void testPostProcessBodyForFinally() throws Exception {
         UrlResponse response = testUtil.doMethod("POST", "/nice", "");
         Assert.assertEquals("nice response", response.body);
-        Assert.assertEquals("nice finally response", response.headers.get("post-process"));
+        Assert.assertEquals("nice done response", response.headers.get("post-process"));
         Assert.assertEquals(200, response.status);
     }
 }
