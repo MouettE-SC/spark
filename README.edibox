@@ -4,5 +4,4 @@ Modifications to upstream:
 - logging of uncaught exception in user code (see issue 486/PR 487)
 - ServletContext parameter to application init in servlet mode
 - CRLF fix (PR 732)
-- mime type for .json static files (see PR 733)
 
