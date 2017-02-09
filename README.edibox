@@ -2,4 +2,4 @@ Modifications to upstream:
 
 - ServletContext parameter to application init in servlet mode
 - CRLF fix (PR 732)
-
+- afterAfter filter name harmonization (PR 766)
