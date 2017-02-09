@@ -52,7 +52,7 @@ final class GeneralError {
             }
         } else {
             LOG.error("", e);
-            
+
             httpResponse.setStatus(500);
 
             if (CustomErrorPages.existsFor(500)) {

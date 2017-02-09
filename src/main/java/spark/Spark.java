@@ -372,24 +372,22 @@ public class Spark {
     }
 
     /**
-     *
      * Execute after route even if the route throws exception
      *
      * @param path   the path
      * @param filter the filter
      */
-    public static void done(String path, Filter filter) {
-        getInstance().done(path, filter);
+    public static void afterAfter(String path, Filter filter) {
+        getInstance().afterAfter(path, filter);
     }
 
     /**
-     *
      * Execute after any matching route even if the route throws exception
      *
      * @param filter the filter
      */
-    public static void done(Filter filter) {
-        getInstance().done(filter);
+    public static void afterAfter(Filter filter) {
+        getInstance().afterAfter(filter);
     }
 
     //////////////////////////////////////////////////
@@ -891,8 +889,8 @@ public class Spark {
      * NOTE: When using this don't catch exceptions of type HaltException, or if catched, re-throw otherwise
      * halt will not work
      */
-    public static void halt() {
-        getInstance().halt();
+    public static HaltException halt() {
+        throw getInstance().halt();
     }
 
     /**
@@ -902,8 +900,8 @@ public class Spark {
      *
      * @param status the status code
      */
-    public static void halt(int status) {
-        getInstance().halt(status);
+    public static HaltException halt(int status) {
+        throw getInstance().halt(status);
     }
 
     /**
@@ -913,8 +911,8 @@ public class Spark {
      *
      * @param body The body content
      */
-    public static void halt(String body) {
-        getInstance().halt(body);
+    public static HaltException halt(String body) {
+        throw getInstance().halt(body);
     }
 
     /**
@@ -925,8 +923,8 @@ public class Spark {
      * @param status The status code
      * @param body   The body content
      */
-    public static void halt(int status, String body) {
-        getInstance().halt(status, body);
+    public static HaltException halt(int status, String body) {
+        throw getInstance().halt(status, body);
     }
 
     /**
