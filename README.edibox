@@ -1,7 +1,5 @@
 Modifications to upstream:
 
-- added finally filters (see issues 195/324 and PR 217/406/546)
-- logging of uncaught exception in user code (see issue 486/PR 487)
 - ServletContext parameter to application init in servlet mode
 - CRLF fix (PR 732)
 
