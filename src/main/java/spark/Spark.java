@@ -21,8 +21,6 @@ import java.util.function.Consumer;
 
 import static spark.Service.ignite;
 
-import java.io.File;
-
 /**
  * The main building block of a Spark application is a set of routes. A route is
  * made up of three simple pieces:
@@ -1041,8 +1039,8 @@ public class Spark {
     public static void initExceptionHandler(Consumer<Exception> initExceptionHandler) {
         getInstance().initExceptionHandler(initExceptionHandler);
     }
-     
-    /** 
+
+    /**
      * Set the connection to be secure, using the specified keystore and
      * truststore. This has to be called before any route mapping is done. You
      * have to supply a keystore file, truststore file is optional (keystore
@@ -1085,16 +1083,6 @@ public class Spark {
      */
     public static void threadPool(int maxThreads, int minThreads, int idleTimeoutMillis) {
         getInstance().threadPool(maxThreads, minThreads, idleTimeoutMillis);
-    }
-
-    /**
-     * Configures jetty's session directory to keep sessions informations
-     * between startups
-     *
-     * @param sessionsDirectory session directory to store session files
-     */
-    public static void sessionsDir(File sessionsDirectory) {
-        getInstance().sessionsDir(sessionsDirectory);
     }
 
     /**
@@ -1162,17 +1150,6 @@ public class Spark {
      */
     public static void webSocketIdleTimeoutMillis(int timeoutMillis) {
         getInstance().webSocketIdleTimeoutMillis(timeoutMillis);
-    }
-
-    /**
-     * Configures the request logging
-     *
-     * @param fileName   - Set the output file name of the request log. The file name may be in
-     *                     include the pattern 'yyyy_mm_dd' to enable rollover.
-     * @param retainDays - The number of days to retain files before deleting them. 0 to retain forever.
-     */
-    public static void setRequestLog(String fileName, int retainDays) {
-        getInstance().setRequestLog(fileName, retainDays);
     }
 
     /**

@@ -16,7 +16,6 @@
  */
 package spark;
 
-import java.io.File;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
@@ -69,8 +68,6 @@ public final class Service extends Routable {
     protected String staticFileFolder = null;
     protected String externalStaticFileFolder = null;
 
-    protected File sessionsDir = null;
-
     protected Map<String, WebSocketHandlerWrapper> webSocketHandlers = null;
 
     protected int maxThreads = -1;
@@ -81,9 +78,6 @@ public final class Service extends Routable {
     protected EmbeddedServer server;
     protected Deque<String> pathDeque = new ArrayDeque<>();
     protected Routes routes;
-
-    protected String requestLogFileName = null;
-    protected int requestLogRetainDays = 0;
 
     private boolean servletStaticLocationSet;
     private boolean servletExternalStaticLocationSet;
@@ -308,20 +302,6 @@ public final class Service extends Routable {
     }
 
     /**
-     * Sets the external directory to store jetty's session files so that
-     * sessions information are kept between runs.
-     *
-     * @param sessionsDir session directory to use
-     */
-    public synchronized void sessionsDir(File sessionsDir) {
-        if (initialized && !isRunningFromServlet()) {
-            throwBeforeRouteMappingException();
-        }
-
-        this.sessionsDir = sessionsDir;
-    }
-
-    /**
      * Maps the given path to the given WebSocket handler class.
      * <p>
      * This is currently only available in the embedded server mode.
@@ -375,22 +355,6 @@ public final class Service extends Routable {
         }
         webSocketIdleTimeoutMillis = Optional.of(timeoutMillis);
         return this;
-    }
-
-    /**
-     * Configures the request logging
-     *
-     * @param fileName   - Set the output file name of the request log. The file name may be in
-     *                     include the pattern 'yyyy_mm_dd' to enable rollover.
-     * @param retainDays - The number of days to retain files before deleting them. 0 to retain forever.
-     */
-    public synchronized void setRequestLog(String fileName, int retainDays) {
-        if (initialized && !isRunningFromServlet()) {
-            throwBeforeRouteMappingException();
-        }
-
-        this.requestLogFileName = fileName;
-        this.requestLogRetainDays = retainDays;
     }
 
     /**
@@ -457,7 +421,7 @@ public final class Service extends Routable {
                 server.extinguish();
                 latch = new CountDownLatch(1);
             }
-            
+
             routes.clear();
             exceptionMapper.clear();
             staticFilesConfiguration.clear();

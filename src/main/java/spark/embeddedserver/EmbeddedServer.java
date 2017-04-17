@@ -37,9 +37,6 @@ public interface EmbeddedServer {
      * @param maxThreads              - max nbr of threads.
      * @param minThreads              - min nbr of threads.
      * @param threadIdleTimeoutMillis - idle timeout (ms).
-     * @param requestLogFileName      - Set the output file name of the request log. The file name may be in
-     *                                  include the pattern 'yyyy_mm_dd' to enable rollover.
-     * @param requestLogRetainDays    - The number of days to retain files before deleting them. 0 to retain forever.
      * @return The port number the server was launched on.
      */
     int ignite(String host,
