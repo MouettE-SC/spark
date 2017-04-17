@@ -83,6 +83,11 @@ public class SocketConnectorFactory {
             sslContextFactory.setTrustStorePassword(sslStores.trustStorePassword());
         }
 
+        if (sslStores.needsClientCert()) {
+            sslContextFactory.setNeedClientAuth(true);
+            sslContextFactory.setWantClientAuth(true);
+        }
+
         HttpConnectionFactory httpConnectionFactory = createHttpConnectionFactory();
 
         ServerConnector connector = new ServerConnector(server, sslContextFactory, httpConnectionFactory);

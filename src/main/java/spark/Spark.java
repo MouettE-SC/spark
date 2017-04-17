@@ -17,6 +17,7 @@
 package spark;
 
 import java.util.Map;
+import java.util.function.Consumer;
 
 import static spark.Service.ignite;
 
@@ -878,7 +879,7 @@ public class Spark {
      * @param exceptionClass the exception class
      * @param handler        The handler
      */
-    public static void exception(Class<? extends Exception> exceptionClass, ExceptionHandler handler) {
+    public static <T extends Exception> void exception(Class<T> exceptionClass, ExceptionHandler<? super T> handler) {
         getInstance().exception(exceptionClass, handler);
     }
 
@@ -1028,6 +1029,40 @@ public class Spark {
                               String truststoreFile,
                               String truststorePassword) {
         getInstance().secure(keystoreFile, keystorePassword, truststoreFile, truststorePassword);
+    }
+
+    /**
+     * Overrides default exception handler during initialization phase
+     *
+     * @param initExceptionHandler The custom init exception handler
+     */
+    public static void initExceptionHandler(Consumer<Exception> initExceptionHandler) {
+        getInstance().initExceptionHandler(initExceptionHandler);
+    }
+     
+    /** 
+     * Set the connection to be secure, using the specified keystore and
+     * truststore. This has to be called before any route mapping is done. You
+     * have to supply a keystore file, truststore file is optional (keystore
+     * will be reused).
+     * This method is only relevant when using embedded Jetty servers. It should
+     * not be used if you are using Servlets, where you will need to secure the
+     * connection in the servlet container
+     *
+     * @param keystoreFile       The keystore file location as string
+     * @param keystorePassword   the password for the keystore
+     * @param truststoreFile     the truststore file location as string, leave null to reuse
+     *                           keystore
+     * @param needsClientCert    Whether to require client certificate to be supplied in
+     *                           request
+     * @param truststorePassword the trust store password
+     */
+    public static void secure(String keystoreFile,
+                              String keystorePassword,
+                              String truststoreFile,
+                              String truststorePassword,
+                              boolean needsClientCert) {
+        getInstance().secure(keystoreFile, keystorePassword, truststoreFile, truststorePassword, needsClientCert);
     }
 
     /**
