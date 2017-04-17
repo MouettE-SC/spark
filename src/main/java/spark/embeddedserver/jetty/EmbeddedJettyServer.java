@@ -16,22 +16,18 @@
  */
 package spark.embeddedserver.jetty;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.CountDownLatch;
 
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
-import org.eclipse.jetty.server.NCSARequestLog;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.HandlerList;
-import org.eclipse.jetty.server.session.HashSessionManager;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +47,8 @@ public class EmbeddedJettyServer implements EmbeddedServer {
     private static final int SPARK_DEFAULT_PORT = 4567;
     private static final String NAME = "Spark";
 
-    private JettyHandler handler;
+    private final JettyServerFactory serverFactory;
+    private final Handler handler;
     private Server server;
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -59,7 +56,8 @@ public class EmbeddedJettyServer implements EmbeddedServer {
     private Map<String, WebSocketHandlerWrapper> webSocketHandlers;
     private Optional<Integer> webSocketIdleTimeoutMillis;
 
-    public EmbeddedJettyServer(JettyHandler handler) {
+    public EmbeddedJettyServer(JettyServerFactory serverFactory, Handler handler) {
+        this.serverFactory = serverFactory;
         this.handler = handler;
     }
 
@@ -71,32 +69,18 @@ public class EmbeddedJettyServer implements EmbeddedServer {
         this.webSocketIdleTimeoutMillis = webSocketIdleTimeoutMillis;
     }
 
-    @Override
-    public void configureSessionsDirectory(File sessionsDir) {
-        if (sessionsDir != null) {
-            try {
-                HashSessionManager sm = new HashSessionManager();
-                sm.setStoreDirectory(sessionsDir);
-                handler.setSessionManager(sm);
-            } catch (IOException e) {
-                logger.warn("Unable to set persistent session store", e);
-            }
-        }
-    }
-
     /**
      * {@inheritDoc}
      */
     @Override
+
     public int ignite(String host,
                       int port,
                       SslStores sslStores,
-                      CountDownLatch latch,
                       int maxThreads,
                       int minThreads,
-                      int threadIdleTimeoutMillis,
-                       String requestLogFileName,
-                       int requestLogRetainDays) {
+                      int threadIdleTimeoutMillis) throws Exception {
+
 
         if (port == 0) {
             try (ServerSocket s = new ServerSocket(0)) {
@@ -107,7 +91,7 @@ public class EmbeddedJettyServer implements EmbeddedServer {
             }
         }
 
-        server = JettyServer.create(maxThreads, minThreads, threadIdleTimeoutMillis);
+        server = serverFactory.create(maxThreads, minThreads, threadIdleTimeoutMillis);
 
         ServerConnector connector;
 
@@ -121,7 +105,7 @@ public class EmbeddedJettyServer implements EmbeddedServer {
         server.setConnectors(new Connector[] {connector});
 
         ServletContextHandler webSocketServletContextHandler =
-                WebSocketServletContextHandlerFactory.create(webSocketHandlers, webSocketIdleTimeoutMillis);
+            WebSocketServletContextHandlerFactory.create(webSocketHandlers, webSocketIdleTimeoutMillis);
 
         // Handle web socket routes
         if (webSocketServletContextHandler == null) {
@@ -140,26 +124,19 @@ public class EmbeddedJettyServer implements EmbeddedServer {
             server.setHandler(handlers);
         }
 
-        if (requestLogFileName != null) {
-            NCSARequestLog rl = new NCSARequestLog(requestLogFileName);
-            rl.setRetainDays(requestLogRetainDays);
-            rl.setAppend(true);
-            server.setRequestLog(rl);
-        }
+        logger.info("== {} has ignited ...", NAME);
+        logger.info(">> Listening on {}:{}", host, port);
 
-        try {
-            logger.info("== {} has ignited ...", NAME);
-            logger.info(">> Listening on {}:{}", host, port);
-
-            server.start();
-            latch.countDown();
-            server.join();
-        } catch (Exception e) {
-            logger.error("ignite failed", e);
-            System.exit(100);
-        }
-
+        server.start();
         return port;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void join() throws InterruptedException {
+        server.join();
     }
 
     /**
@@ -179,5 +156,11 @@ public class EmbeddedJettyServer implements EmbeddedServer {
         logger.info("done");
     }
 
-
+    @Override
+    public int activeThreadCount() {
+        if (server == null) {
+            return 0;
+        }
+        return server.getThreadPool().getThreads() - server.getThreadPool().getIdleThreads();
+    }
 }

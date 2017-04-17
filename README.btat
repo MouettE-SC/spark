@@ -1,5 +1,3 @@
 Modifications to upstream:
 
-- request logging (jetty only)
-- session directory (jetty only)
 - ServletContext parameter to application init in servlet mode

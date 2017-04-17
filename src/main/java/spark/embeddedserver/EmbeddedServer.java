@@ -16,10 +16,8 @@
  */
 package spark.embeddedserver;
 
-import java.io.File;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.CountDownLatch;
 
 import spark.embeddedserver.jetty.websocket.WebSocketHandlerWrapper;
 import spark.ssl.SslStores;
@@ -36,7 +34,6 @@ public interface EmbeddedServer {
      * @param host                    The address to listen on
      * @param port                    - the port
      * @param sslStores               - The SSL sslStores.
-     * @param latch                   - the countdown latch
      * @param maxThreads              - max nbr of threads.
      * @param minThreads              - min nbr of threads.
      * @param threadIdleTimeoutMillis - idle timeout (ms).
@@ -48,12 +45,9 @@ public interface EmbeddedServer {
     int ignite(String host,
                int port,
                SslStores sslStores,
-               CountDownLatch latch,
                int maxThreads,
                int minThreads,
-               int threadIdleTimeoutMillis,
-               String requestLogFileName,
-               int requestLogRetainDays);
+               int threadIdleTimeoutMillis) throws Exception;
 
     /**
      * Configures the web sockets for the embedded server.
@@ -68,14 +62,18 @@ public interface EmbeddedServer {
     }
 
     /**
-     * Configure the session storage directory for the embedded server.
-     *
-     * @param sessionsDir - session directory
+     * Joins the embedded server thread(s).
      */
-    void configureSessionsDirectory(File sessionsDir);
+    void join() throws InterruptedException;
 
     /**
      * Extinguish the embedded server.
      */
     void extinguish();
+
+    /**
+     *
+     * @return The approximate number of currently active threads
+     */
+    int activeThreadCount();
 }

@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -33,6 +34,7 @@ import spark.embeddedserver.EmbeddedServers;
 import spark.embeddedserver.jetty.websocket.WebSocketHandlerClassWrapper;
 import spark.embeddedserver.jetty.websocket.WebSocketHandlerInstanceWrapper;
 import spark.embeddedserver.jetty.websocket.WebSocketHandlerWrapper;
+import spark.route.HttpMethod;
 import spark.route.Routes;
 import spark.route.ServletRoutes;
 import spark.ssl.SslStores;
@@ -94,6 +96,13 @@ public final class Service extends Routable {
     public final StaticFiles staticFiles;
 
     private final StaticFilesConfiguration staticFilesConfiguration;
+    private final ExceptionMapper exceptionMapper = ExceptionMapper.getInstance();
+
+    // default exception handler during initialization phase
+    private Consumer<Exception> initExceptionHandler = (e) -> {
+        LOG.error("ignite failed", e);
+        System.exit(100);
+    };
 
     /**
      * Creates a new Service (a Spark instance). This should be used instead of the static API if the user wants
@@ -167,7 +176,7 @@ public final class Service extends Routable {
      * Set the connection to be secure, using the specified keystore and
      * truststore. This has to be called before any route mapping is done. You
      * have to supply a keystore file, truststore file is optional (keystore
-     * will be reused).
+     * will be reused). By default, client certificates are not checked.
      * This method is only relevant when using embedded Jetty servers. It should
      * not be used if you are using Servlets, where you will need to secure the
      * connection in the servlet container
@@ -183,6 +192,32 @@ public final class Service extends Routable {
                                        String keystorePassword,
                                        String truststoreFile,
                                        String truststorePassword) {
+        return secure(keystoreFile, keystorePassword, truststoreFile, truststorePassword, false);
+    }
+
+    /**
+     * Set the connection to be secure, using the specified keystore and
+     * truststore. This has to be called before any route mapping is done. You
+     * have to supply a keystore file, truststore file is optional (keystore
+     * will be reused).
+     * This method is only relevant when using embedded Jetty servers. It should
+     * not be used if you are using Servlets, where you will need to secure the
+     * connection in the servlet container
+     *
+     * @param keystoreFile       The keystore file location as string
+     * @param keystorePassword   the password for the keystore
+     * @param truststoreFile     the truststore file location as string, leave null to reuse
+     *                           keystore
+     * @param needsClientCert    Whether to require client certificate to be supplied in
+     *                           request
+     * @param truststorePassword the trust store password
+     * @return the object with connection set to be secure
+     */
+    public synchronized Service secure(String keystoreFile,
+                                       String keystorePassword,
+                                       String truststoreFile,
+                                       String truststorePassword,
+                                       boolean needsClientCert) {
         if (initialized) {
             throwBeforeRouteMappingException();
         }
@@ -192,7 +227,7 @@ public final class Service extends Routable {
                     "Must provide a keystore file to run secured");
         }
 
-        sslStores = SslStores.create(keystoreFile, keystorePassword, truststoreFile, truststorePassword);
+        sslStores = SslStores.create(keystoreFile, keystorePassword, truststoreFile, truststorePassword, needsClientCert);
         return this;
     }
 
@@ -399,6 +434,7 @@ public final class Service extends Routable {
             latch.await();
         } catch (InterruptedException e) {
             LOG.info("Interrupted by another thread");
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -418,11 +454,12 @@ public final class Service extends Routable {
     public synchronized void stop() {
         new Thread(() -> {
             if (server != null) {
-                routes.clear();
                 server.extinguish();
                 latch = new CountDownLatch(1);
             }
-
+            
+            routes.clear();
+            exceptionMapper.clear();
             staticFilesConfiguration.clear();
             initialized = false;
         }).start();
@@ -454,12 +491,26 @@ public final class Service extends Routable {
     }
 
     @Override
+    public void addRoute(HttpMethod httpMethod, RouteImpl route) {
+        init();
+        routes.add(httpMethod, route.withPrefix(getPaths()));
+    }
+
+    @Override
+    public void addFilter(HttpMethod httpMethod, FilterImpl filter) {
+        init();
+        routes.add(httpMethod, filter.withPrefix(getPaths()));
+    }
+
+    @Override
+    @Deprecated
     public void addRoute(String httpMethod, RouteImpl route) {
         init();
         routes.add(httpMethod + " '" + getPaths() + route.getPath() + "'", route.getAcceptType(), route);
     }
 
     @Override
+    @Deprecated
     public void addFilter(String httpMethod, FilterImpl filter) {
         init();
         routes.add(httpMethod + " '" + getPaths() + filter.getPath() + "'", filter.getAcceptType(), filter);
@@ -472,6 +523,7 @@ public final class Service extends Routable {
 
             if (!isRunningFromServlet()) {
                 new Thread(() -> {
+                  try {
                     EmbeddedServers.initialize();
 
                     if (embeddedServerIdentifier == null) {
@@ -483,20 +535,25 @@ public final class Service extends Routable {
                                                     staticFilesConfiguration,
                                                     hasMultipleHandlers());
 
-                    server.configureSessionsDirectory(sessionsDir);
-
                     server.configureWebSockets(webSocketHandlers, webSocketIdleTimeoutMillis);
 
                     port = server.ignite(
                             ipAddress,
                             port,
                             sslStores,
-                            latch,
                             maxThreads,
                             minThreads,
-                            threadIdleTimeoutMillis,
-                            requestLogFileName,
-                            requestLogRetainDays);
+                            threadIdleTimeoutMillis);
+                  } catch (Exception e) {
+                    initExceptionHandler.accept(e);
+                  }
+                    try {
+                        latch.countDown();
+                        server.join();
+                    } catch (InterruptedException e) {
+                        LOG.error("server interrupted", e);
+                        Thread.currentThread().interrupt();
+                    }
                 }).start();
             }
             initialized = true;
@@ -521,16 +578,16 @@ public final class Service extends Routable {
      * @param exceptionClass the exception class
      * @param handler        The handler
      */
-    public synchronized void exception(Class<? extends Exception> exceptionClass, ExceptionHandler handler) {
+    public synchronized <T extends Exception> void exception(Class<T> exceptionClass, ExceptionHandler<? super T> handler) {
         // wrap
-        ExceptionHandlerImpl wrapper = new ExceptionHandlerImpl(exceptionClass) {
+        ExceptionHandlerImpl wrapper = new ExceptionHandlerImpl<T>(exceptionClass) {
             @Override
-            public void handle(Exception exception, Request request, Response response) {
+            public void handle(T exception, Request request, Response response) {
                 handler.handle(exception, request, response);
             }
         };
 
-        ExceptionMapper.getInstance().map(exceptionClass, wrapper);
+        exceptionMapper.map(exceptionClass, wrapper);
     }
 
     //////////////////////////////////////////////////
@@ -583,6 +640,18 @@ public final class Service extends Routable {
      */
     public HaltException halt(int status, String body) {
         throw new HaltException(status, body);
+    }
+
+    /**
+     * Overrides default exception handler during initialization phase
+     *
+     * @param initExceptionHandler The custom init exception handler
+     */
+    public void initExceptionHandler(Consumer<Exception> initExceptionHandler) {
+        if (initialized) {
+            throwBeforeRouteMappingException();
+        }
+        this.initExceptionHandler = initExceptionHandler;
     }
 
     /**
