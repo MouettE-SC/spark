@@ -4,11 +4,26 @@
 
 Spark - a tiny web framework for Java 8
 ==============================================
-IMPORTANT INFORMATION - There has been found a security vulnerability in older versions of Spark 2.+. Please upgrade to the latest version 2.5.5 (2.5.2 fixed this issue)
 
-For more detailed documentation please go to: http://sparkjava.com/documentation
+**NEWS**: Spark 2.6.0 Release Candidate is out. Please try it out and report any bugs. 2.6.0 release will follow soon.
+```xml
+<dependency>
+    <groupId>com.sparkjava</groupId>
+    <artifactId>spark-core</artifactId>
+    <version>2.6.0.RC0</version>
+</dependency>
+```
 
-NEWS: Spark 2.5.5 is out! (IMPORTANT fix for directory traversal vulnerability was fixed in 2.5.2!)
+Important - There is a vulnerability in older versions of Spark (versions lower than 2.5.2). Please upgrade to the latest version.
+
+For documentation please go to: http://sparkjava.com/documentation
+
+For usage questions, please use [stack overflow with the “spark-java” tag](http://stackoverflow.com/questions/tagged/spark-java) 
+
+Javadoc: http://javadoc.io/doc/com.sparkjava/
+
+Getting started
+---------------
 
 ```xml
 <dependency>
@@ -17,13 +32,6 @@ NEWS: Spark 2.5.5 is out! (IMPORTANT fix for directory traversal vulnerability w
     <version>2.5.5</version>
 </dependency>
 ```
-
-For questions about using Spark, post on our Google Group: https://groups.google.com/d/forum/sparkjava
-
-Temporary javadoc: http://spark.screenisland.com
-
-Getting started
----------------
 
 ```java
 import static spark.Spark.*;
