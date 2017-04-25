@@ -1,8 +1,5 @@
 package spark.servlet;
 
-import java.io.File;
-import java.io.FileWriter;
-
 import static spark.Spark.after;
 import static spark.Spark.before;
 import static spark.Spark.externalStaticFileLocation;
@@ -11,7 +8,8 @@ import static spark.Spark.halt;
 import static spark.Spark.post;
 import static spark.Spark.staticFileLocation;
 
-import javax.servlet.ServletContext;
+import java.io.File;
+import java.io.FileWriter;
 
 public class MyApp implements SparkApplication {
 
@@ -20,7 +18,7 @@ public class MyApp implements SparkApplication {
     static File tmpExternalFile;
 
     @Override
-    public synchronized void init(ServletContext context) {
+    public synchronized void init() {
         try {
             externalStaticFileLocation(System.getProperty("java.io.tmpdir"));
             staticFileLocation("/public");
