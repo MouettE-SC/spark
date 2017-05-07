@@ -29,14 +29,14 @@
     
     <distributionManagement>
       <repository>
-        <id>EBReleases</id>
+        <id>EBNexus</id>
         <name>Edibox releases repository</name>
-        <url>http://nexus.edibox.ca/repository/releases</url>
+        <url>https://nexus.edibox.ca/repository/releases</url>
       </repository>
       <snapshotRepository>
-        <id>EBSnapshots</id>
+        <id>EBNexus</id>
         <name>Edibox snaphosts repository</name>
-        <url>http://nexus.edibox.ca/repository/snapshots</url>
+        <url>https://nexus.edibox.ca/repository/snapshots</url>
       </snapshotRepository>
     </distributionManagement>
 
